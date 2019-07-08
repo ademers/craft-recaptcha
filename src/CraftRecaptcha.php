@@ -148,11 +148,15 @@ class CraftRecaptcha extends Plugin
 
                      $captcha = Craft::$app->getRequest()->getParam('g-recaptcha-response');
 
-                     $validates = CraftRecaptcha::$plugin->craftRecaptchaService->verify($captcha);
+                     if (array_key_exists('g-recaptcha-response', Craft::$app->getRequest()->bodyParams)) {
 
-                     if (!$validates) {
-                         $submission->addError('recaptcha', 'Please verify you are human.');
-                         $e->isValid = false;
+                        $validates = CraftRecaptcha::$plugin->craftRecaptchaService->verify($captcha);
+
+                        if (!$validates) {
+                           $submission->addError('recaptcha', 'Please verify you are human.');
+                           $e->isValid = false;
+                        }
+
                      }
 
                   }
