@@ -135,31 +135,31 @@ class CraftRecaptcha extends Plugin
         }
 
         // Set up user registration form hook.
+        // Ensure that only applies to front-end registration form. Otherwise can't create User Accounts in CP!!
+        if (Craft::$app->request->getIsSiteRequest()) {
+            if ($settings->validateUserRegistrationForm) {
+                Event::on(
+                    User::class,
+                    User::EVENT_BEFORE_SAVE,
+                    function(Event $e) {
+                        if ($e->isNew) {
 
-        if ($settings->validateUserRegistrationForm) {
+                            $submission = $e->sender;
 
-            Event::on(
-               User::class,
-               User::EVENT_BEFORE_SAVE,
-               function (Event $e) {
-                  if($e->isNew) {
+                            $captcha = Craft::$app->getRequest()->getParam('g-recaptcha-response');
 
-                     $submission = $e->sender;
+                            $validates = CraftRecaptcha::$plugin->craftRecaptchaService->verify($captcha);
 
-                     $captcha = Craft::$app->getRequest()->getParam('g-recaptcha-response');
+                            if (!$validates) {
+                                $submission->addError('recaptcha', 'Please verify you are human.');
+                                $e->isValid = false;
+                            }
+                        }
+                    }
+                );
+            }
+        }
 
-                     $validates = CraftRecaptcha::$plugin->craftRecaptchaService->verify($captcha);
-
-                     if (!$validates) {
-                         $submission->addError('recaptcha', 'Please verify you are human.');
-                         $e->isValid = false;
-                     }
-
-                  }
-               }
-            );
-
-         }
 
 /**
  * Logging in Craft involves using one of the following methods:
